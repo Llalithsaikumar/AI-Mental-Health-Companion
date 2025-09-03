@@ -51,25 +51,7 @@ AI-Mental-Health-Companion/
 ```bash
 git clone https://github.com/<your-username>/AI-Mental-Health-Companion.git
 cd AI-Mental-Health-Companion
-
 pip install -r requirements.txt
-
 jupyter notebook notebooks/Text_Emotion_Demo.ipynb
 
-
 ---
-
-## ✅ Step 4: Requirements File
-Create `requirements.txt` so anyone can replicate:  
-
-```txt
-torch
-torchaudio
-transformers
-datasets
-scikit-learn
-matplotlib
-seaborn
-librosa
-fastapi
-uvicorn
