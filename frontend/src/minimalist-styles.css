@@ -1,0 +1,124 @@
+/* Add these at the top of App.css */
+
+/* General Card Styling - Classic Minimalist Style */
+.card-minimalist {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
+  padding: 24px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease;
+}
+
+.card-minimalist:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.card-minimalist h2, 
+.card-minimalist h3, 
+.card-minimalist h4 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+  color: #1a1a1a;
+}
+
+.card-minimalist h2 {
+  font-size: 1.5rem;
+}
+
+.card-minimalist h3 {
+  font-size: 1.3rem;
+}
+
+.card-minimalist h4 {
+  font-size: 1.1rem;
+}
+
+.card-minimalist p {
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  color: #595959;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+/* Buttons - Classic Minimalist Style */
+.btn-minimalist {
+  background-color: #1a1a1a;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 2px;
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-minimalist:hover {
+  background-color: #333333;
+}
+
+.btn-minimalist.secondary {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid #d9d9d9;
+}
+
+.btn-minimalist.secondary:hover {
+  background-color: #f5f5f5;
+}
+
+/* Form inputs - Classic Minimalist Style */
+.input-minimalist {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.input-minimalist:focus {
+  outline: none;
+  border-color: #1a1a1a;
+}
+
+/* Typography - Classic Minimalist Style */
+.title-minimalist {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #1a1a1a;
+}
+
+.text-minimalist {
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  color: #595959;
+  line-height: 1.6;
+}
+
+/* Section Header - Classic Minimalist Style */
+.section-header-minimalist {
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.section-header-minimalist h2 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+  color: #1a1a1a;
+}
+
+.section-header-minimalist p {
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  font-size: 0.9rem;
+  color: #595959;
+}

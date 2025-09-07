@@ -1,0 +1,366 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import {
+  Container,
+  Typography,
+  Box,
+  Grid,
+  Card,
+  CardContent,
+  styled,
+  Button,
+  Slider,
+  CircularProgress
+} from '@mui/material';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useAuth } from '../context/AuthContext';
+import { getModdHistory, getMoodStats } from '../services/api';
+import MoodTracker from '../components/MoodTracker';
+import DashboardHeader from '../components/DashboardHeader';
+
+// Styled components
+const StyledCard = styled(Card)(({ theme }) => ({
+  borderRadius: '12px',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+  height: '100%',
+  transition: 'transform 0.3s ease-in-out',
+  '&:hover': {
+    transform: 'translateY(-5px)'
+  }
+}));
+
+const EmotionPieChart = ({ data }) => {
+  // Simple pie chart component
+  if (!data || data.length === 0) {
+    return <Typography>No emotion data available</Typography>;
+  }
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexWrap: 'wrap', 
+        justifyContent: 'center',
+        gap: 2,
+        mt: 2
+      }}>
+        {data.map((entry, index) => (
+          <Box key={index} sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mr: 2,
+            mb: 1
+          }}>
+            <Box sx={{ 
+              width: 16, 
+              height: 16, 
+              backgroundColor: entry.color,
+              mr: 1,
+              borderRadius: '50%'
+            }} />
+            <Typography variant="body2">
+              {entry.name}: {Math.round(entry.value * 100) / 100}%
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+const InterventionCard = ({ intervention }) => (
+  <StyledCard>
+    <CardContent>
+      <Typography variant="h6" gutterBottom fontWeight="bold">
+        {intervention.title}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        {intervention.type}
+      </Typography>
+      <Typography variant="body1" paragraph>
+        {intervention.content}
+      </Typography>
+      <Button variant="contained" color="primary" fullWidth>
+        Start Now
+      </Button>
+    </CardContent>
+  </StyledCard>
+);
+
+const Dashboard = () => {
+  const { currentUser: user } = useAuth();
+  const [moodHistory, setMoodHistory] = useState([]);
+  const [moodStats, setMoodStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [dayRange, setDayRange] = useState(7);
+
+  // Mock data for interventions
+  const mockInterventions = [
+    {
+      title: '5-Minute Breathing Exercise',
+      type: 'Meditation',
+      content: 'A quick breathing exercise to help center yourself and reduce stress.'
+    },
+    {
+      title: 'Thought Challenge',
+      type: 'Cognitive',
+      content: 'Identify and challenge negative thought patterns that affect your mood.'
+    },
+    {
+      title: 'Gratitude Practice',
+      type: 'Behavioral',
+      content: 'List three things you are grateful for to shift perspective and improve mood.'
+    }
+  ];
+
+  const fetchMoodData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const historyResponse = await getModdHistory();
+      const statsResponse = await getMoodStats(dayRange);
+      
+      if (historyResponse && historyResponse.history) {
+        setMoodHistory(historyResponse.history);
+      }
+      
+      if (statsResponse) {
+        setMoodStats(statsResponse);
+      }
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching mood data:', err);
+      setError('Failed to load mood data. Please try again later.');
+      setLoading(false);
+    }
+  }, [dayRange]);
+
+  useEffect(() => {
+    fetchMoodData();
+  }, [fetchMoodData]);
+
+  const handleDayRangeChange = (event, newValue) => {
+    setDayRange(newValue);
+  };
+
+  // Define emotion colors for the charts
+  const emotionColors = {
+    'joy': '#4CAF50',
+    'sadness': '#2196F3',
+    'anger': '#F44336',
+    'fear': '#FF9800',
+    'disgust': '#9C27B0',
+    'neutral': '#9E9E9E'
+  };
+
+  return (
+    <>
+      <DashboardHeader title="Dashboard" />
+      <Box sx={{ bgcolor: 'background.paper', pt: 4, pb: 6 }}>
+        <Container>
+          <Typography variant="h4" gutterBottom fontWeight="bold">
+            Welcome back, {user?.username || 'Friend'}
+          </Typography>
+          <Typography variant="body1" paragraph color="text.secondary">
+            Track your mood and manage your mental wellbeing
+          </Typography>
+        </Container>
+      </Box>
+
+      <Container sx={{ py: 4 }}>
+        {/* Mood Tracking Section */}
+        <Typography variant="h5" gutterBottom fontWeight="bold">
+          How are you feeling today?
+        </Typography>
+        <Box sx={{ mb: 4 }}>
+          <MoodTracker onMoodLogged={fetchMoodData} />
+        </Box>
+
+        {/* Data Visualization Section */}
+        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+          <Typography variant="h5" gutterBottom fontWeight="bold" sx={{ flexGrow: 1 }}>
+            Your Mood Insights
+          </Typography>
+          <Box sx={{ width: 200, display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ mr: 2 }}>
+              Days:
+            </Typography>
+            <Slider
+              value={dayRange}
+              onChange={handleDayRangeChange}
+              step={1}
+              marks
+              min={3}
+              max={30}
+              valueLabelDisplay="auto"
+            />
+          </Box>
+        </Box>
+
+        <Grid container spacing={3}>
+          {/* Weekly Mood Overview */}
+          <Grid item xs={12} md={6}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Mood Stats
+                </Typography>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                    <Typography color="error">{error}</Typography>
+                  </Box>
+                ) : (
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Box sx={{ textAlign: 'center', p: 1 }}>
+                        <Typography variant="h3" gutterBottom>
+                          {moodStats.avg_mood ? Math.round(moodStats.avg_mood * 10) / 10 : '-'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Average Mood
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box sx={{ textAlign: 'center', p: 1 }}>
+                        <Typography variant="h3" gutterBottom>
+                          {moodStats.count || 0}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Entries
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+                )}
+              </CardContent>
+            </StyledCard>
+          </Grid>
+
+          {/* Emotion Distribution */}
+          <Grid item xs={12} md={6}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Emotion Distribution
+                </Typography>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                    <Typography color="error">{error}</Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {(() => {
+                      const emotionCounts = moodStats.emotion_counts || {};
+                      const total = Object.values(emotionCounts).reduce((sum, count) => sum + count, 0) || 1;
+                      
+                      const emotionData = Object.keys(emotionCounts).map(emotion => ({
+                        name: emotion,
+                        value: (emotionCounts[emotion] / total) * 100,
+                        color: emotionColors[emotion] || '#9E9E9E' // Default gray for unknown emotions
+                      }));
+                      
+                      return <EmotionPieChart data={emotionData} />;
+                    })()}
+                  </Box>
+                )}
+              </CardContent>
+            </StyledCard>
+          </Grid>
+
+          {/* Mood Patterns */}
+          <Grid item xs={12} md={6}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Mood Patterns by Day
+                </Typography>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography color="error">{error}</Typography>
+                  </Box>
+                ) : moodHistory.length === 0 ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography>No mood data available.</Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ height: 300 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={(() => {
+                          // Process the mood data by day of week
+                          const dayMoods = {
+                            'Sun': [],
+                            'Mon': [],
+                            'Tue': [],
+                            'Wed': [],
+                            'Thu': [],
+                            'Fri': [],
+                            'Sat': []
+                          };
+                          
+                          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                          
+                          moodHistory.forEach(entry => {
+                            const date = new Date(entry.timestamp);
+                            const day = dayNames[date.getDay()];
+                            if (dayMoods[day]) {
+                              dayMoods[day].push(entry.mood_score);
+                            }
+                          });
+                          
+                          return Object.keys(dayMoods).map(day => ({
+                            day,
+                            mood: dayMoods[day].length ? 
+                              dayMoods[day].reduce((sum, score) => sum + score, 0) / dayMoods[day].length : 
+                              0
+                          }));
+                        })()}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="day" />
+                        <YAxis domain={[0, 10]} />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="mood" fill="#8884d8" radius={[5, 5, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Box>
+                )}
+              </CardContent>
+            </StyledCard>
+          </Grid>
+
+          {/* Personalized Interventions */}
+          <Grid item xs={12}>
+            <Typography variant="h5" gutterBottom fontWeight="bold" sx={{ mt: 2 }}>
+              Recommended Interventions
+            </Typography>
+            <Grid container spacing={3}>
+              {mockInterventions.map((intervention, index) => (
+                <Grid item xs={12} md={4} key={index}>
+                  <InterventionCard intervention={intervention} />
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+        </Grid>
+      </Container>
+    </>
+  );
+};
+
+export default Dashboard;

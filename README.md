@@ -1,4 +1,3 @@
-
 # 🧠 AI Mental Health Companion
 
 ![Python](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)
@@ -53,20 +52,55 @@ AI-Mental-Health-Companion/
 ## 🚀 Getting Started
 
 1. **Clone the repository**
-	```bash
-	git clone https://github.com/<your-username>/AI-Mental-Health-Companion.git
-	cd AI-Mental-Health-Companion
-	```
+    ```bash
+    git clone https://github.com/Llalithsaikumar/AI-Mental-Health-Companion.git
+    cd AI-Mental-Health-Companion
+    ```
 
 2. **Install dependencies**
-	```bash
-	pip install -r requirements.txt
-	```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-3. **Run notebook demo**
-	```bash
-	jupyter notebook notebooks/Text_Emotion_Demo.ipynb
-	```
+3. **Set up environment**
+    ```bash
+    # Create and activate virtual environment
+    python -m venv mental_health_env
+    # Activate environment - Windows
+    mental_health_env\Scripts\activate
+    # Activate environment - macOS/Linux
+    source mental_health_env/bin/activate
+    ```
+
+4. **Run the application**
+    ```bash
+    # For full version (requires models)
+    python start_backend.py
+    
+    # For minimal demo version (no models required)
+    python start_minimal.py
+    ```
+
+5. **Run frontend** (in another terminal)
+    ```bash
+    cd frontend
+    npm install
+    npm start
+    ```
+
+---
+
+## 💻 Usage Options
+
+### Full Version
+- Requires trained models
+- Complete functionality
+- Start with `python start_backend.py`
+
+### Minimal Demo Version
+- No models required
+- Mock data for demonstration
+- Start with `python start_minimal.py`
 
 ---
 

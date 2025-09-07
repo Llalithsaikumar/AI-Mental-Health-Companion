@@ -1,0 +1,319 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import { Box, Typography, Container, Grid, Paper, Card, CardContent, Button, CircularProgress } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import DashboardHeader from '../components/DashboardHeader';
+import MoodTracker from '../components/MoodTracker';
+import InterventionCard from '../components/InterventionCard';
+import EmotionPieChart from '../components/EmotionPieChart';
+import MoodEntry from '../components/MoodEntry';
+import MoodChart from '../components/MoodChart';
+import MoodPredictor from '../components/MoodPredictor';
+import AdvancedInterventions from '../components/AdvancedInterventions';
+import RealTimeAlerts from '../components/RealTimeAlerts';
+import Analytics from '../components/Analytics';
+import { moodAPI } from '../services/api';
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  transition: 'box-shadow 0.2s ease',
+  borderRadius: '2px',
+  border: '1px solid #e0e0e0',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+  '&:hover': {
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.06)',
+  },
+}));
+
+const mockMoodData = [
+  { date: '9/1', mood: 7, emotion: 'Joy' },
+  { date: '9/2', mood: 6, emotion: 'Neutral' },
+  { date: '9/3', mood: 8, emotion: 'Joy' },
+  { date: '9/4', mood: 5, emotion: 'Neutral' },
+  { date: '9/5', mood: 4, emotion: 'Sadness' },
+  { date: '9/6', mood: 6, emotion: 'Neutral' },
+  { date: '9/7', mood: 7, emotion: 'Joy' },
+];
+
+const mockEmotionData = [
+  { name: 'Joy', value: 45, color: '#4CAF50' },
+  { name: 'Neutral', value: 30, color: '#2196F3' },
+  { name: 'Sadness', value: 15, color: '#9C27B0' },
+  { name: 'Anger', value: 5, color: '#F44336' },
+  { name: 'Fear', value: 5, color: '#FF9800' },
+];
+
+const mockInterventions = [
+  {
+    title: "Mindful Breathing",
+    description: "Take 5 minutes to focus on your breath. Inhale for 4 counts, hold for 2, exhale for 6.",
+    type: "mindfulness",
+    duration: "5 min",
+    emotion: "anxiety"
+  },
+  {
+    title: "Gratitude Journaling",
+    description: "Write down three things you're grateful for today, no matter how small.",
+    type: "cognitive",
+    duration: "10 min",
+    emotion: "sadness"
+  },
+  {
+    title: "Quick Walk",
+    description: "Take a short 15-minute walk outside to clear your mind and boost your mood.",
+    type: "physical",
+    duration: "15 min",
+    emotion: "stress"
+  }
+];
+
+const Dashboard = () => {
+  const [moodHistory, setMoodHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchMoodHistory = async () => {
+      try {
+        setLoading(true);
+        const response = await moodAPI.getMoodHistory();
+        console.log("Mood history response:", response.data);
+        
+        if (response.data && response.data.history) {
+          setMoodHistory(response.data.history);
+        } else {
+          setMoodHistory([]);
+        }
+      } catch (err) {
+        console.error("Error fetching mood history:", err);
+        setError("Failed to load mood history. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMoodHistory();
+  }, []);
+
+  return (
+    <>
+      <DashboardHeader title="Dashboard" />
+      
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Grid container spacing={3}>
+          {/* Mood Entry */}
+          <Grid item xs={12} md={6}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  How are you feeling today?
+                </Typography>
+                <MoodTracker />
+              </CardContent>
+            </StyledCard>
+          </Grid>
+
+          {/* Weekly Mood Overview */}
+          <Grid item xs={12} md={6}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Weekly Mood Overview
+                </Typography>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography color="error">{error}</Typography>
+                  </Box>
+                ) : moodHistory.length === 0 ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography>No mood data available. Start tracking your mood!</Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ height: 300 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart
+                        data={moodHistory.slice(0, 7).map(entry => ({
+                          date: new Date(entry.timestamp).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}),
+                          mood: entry.mood_score,
+                          emotion: entry.text_emotion
+                        }))}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis domain={[0, 10]} />
+                        <Tooltip />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="mood" 
+                          stroke="#8884d8" 
+                          strokeWidth={2}
+                          dot={{ r: 5 }}
+                          activeDot={{ r: 8 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Box>
+                )}
+              </CardContent>
+            </StyledCard>
+          </Grid>
+
+          {/* Emotion Distribution */}
+          <Grid item xs={12} md={6}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Emotion Distribution
+                </Typography>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography color="error">{error}</Typography>
+                  </Box>
+                ) : moodHistory.length === 0 ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography>No emotion data available.</Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ height: 300, display: 'flex', justifyContent: 'center' }}>
+                    {(() => {
+                      // Process the emotion data from the mood history
+                      const emotionCounts = {};
+                      moodHistory.forEach(entry => {
+                        const emotion = entry.text_emotion ? 
+                          entry.text_emotion.charAt(0).toUpperCase() + entry.text_emotion.slice(1) : 
+                          'Neutral';
+                        
+                        if (emotionCounts[emotion]) {
+                          emotionCounts[emotion]++;
+                        } else {
+                          emotionCounts[emotion] = 1;
+                        }
+                      });
+                      
+                      // Convert to the format expected by EmotionPieChart
+                      const emotionColors = {
+                        'Joy': '#4CAF50',
+                        'Neutral': '#2196F3',
+                        'Sadness': '#9C27B0',
+                        'Anger': '#F44336',
+                        'Fear': '#FF9800',
+                        'Contentment': '#8BC34A',
+                        'Gratitude': '#009688',
+                        'Calm': '#03A9F4',
+                        'Anxiety': '#FF5722',
+                        'Stress': '#795548'
+                      };
+                      
+                      const emotionData = Object.keys(emotionCounts).map(emotion => ({
+                        name: emotion,
+                        value: emotionCounts[emotion],
+                        color: emotionColors[emotion] || '#9E9E9E' // Default gray for unknown emotions
+                      }));
+                      
+                      return <EmotionPieChart data={emotionData} />;
+                    })()}
+                  </Box>
+                )}
+              </CardContent>
+            </StyledCard>
+          </Grid>
+
+          {/* Mood Patterns */}
+          <Grid item xs={12} md={6}>
+            <StyledCard>
+              <CardContent>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  Mood Patterns by Day
+                </Typography>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : error ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography color="error">{error}</Typography>
+                  </Box>
+                ) : moodHistory.length === 0 ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                    <Typography>No mood data available.</Typography>
+                  </Box>
+                ) : (
+                  <Box sx={{ height: 300 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={(() => {
+                          // Process the mood data by day of week
+                          const dayMoods = {
+                            'Sun': [],
+                            'Mon': [],
+                            'Tue': [],
+                            'Wed': [],
+                            'Thu': [],
+                            'Fri': [],
+                            'Sat': []
+                          };
+                          
+                          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                          
+                          moodHistory.forEach(entry => {
+                            const date = new Date(entry.timestamp);
+                            const day = dayNames[date.getDay()];
+                            if (dayMoods[day]) {
+                              dayMoods[day].push(entry.mood_score);
+                            }
+                          });
+                          
+                          return Object.keys(dayMoods).map(day => ({
+                            day,
+                            mood: dayMoods[day].length ? 
+                              dayMoods[day].reduce((sum, score) => sum + score, 0) / dayMoods[day].length : 
+                              0
+                          }));
+                        })())}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="day" />
+                      <YAxis domain={[0, 10]} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="mood" fill="#8884d8" radius={[5, 5, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </StyledCard>
+          </Grid>
+
+          {/* Personalized Interventions */}
+          <Grid item xs={12}>
+            <Typography variant="h5" gutterBottom fontWeight="bold" sx={{ mt: 2 }}>
+              Recommended Interventions
+            </Typography>
+            <Grid container spacing={3}>
+              {mockInterventions.map((intervention, index) => (
+                <Grid item xs={12} md={4} key={index}>
+                  <InterventionCard intervention={intervention} />
+                </Grid>
+              ))}
+            </Grid>
+          </Grid>
+        </Grid>
+      </Container>
+    </>
+  );
+};
+
+export default Dashboard;
